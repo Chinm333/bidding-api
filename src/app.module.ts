@@ -8,10 +8,25 @@ import { BidController } from './bid/bid.controller';
 import { BidService } from './bid/bid.service';
 import { BidModule } from './bid/bid.module';
 import { UserModule } from './user/user.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import * as dotenv from 'dotenv';
+import { CommonModule } from './common/common.module';
+
+dotenv.config();
 
 @Module({
-  imports: [AuthModule, BidModule, UserModule],
-  controllers: [AppController, AuthController, BidController],
-  providers: [AppService, AuthService, BidService],
+  imports: [
+    MongooseModule.forRoot(process.env.MONGODB_URL),
+    AuthModule,
+    BidModule, 
+    UserModule,
+    CommonModule,
+  ],
+  controllers: [
+    AppController,
+  ],
+  providers: [
+    AppService,
+  ],
 })
-export class AppModule {}
+export class AppModule { }
