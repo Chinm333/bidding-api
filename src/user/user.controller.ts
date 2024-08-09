@@ -14,7 +14,7 @@ export class UserController {
     }
 
     @Get(':email')
-    async login(@Param('email') email: string): Promise<User> {
+    async getUser(@Param('email') email: string): Promise<User> {
         return await this.userService.getUser(email);
     }
 }

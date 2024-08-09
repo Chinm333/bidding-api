@@ -32,6 +32,7 @@
     "bcryptjs": "^2.4.3",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.5",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.5.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",

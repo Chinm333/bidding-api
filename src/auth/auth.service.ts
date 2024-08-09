@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
+const jwt = require('jsonwebtoken');
 
 @Injectable()
 export class AuthService {
@@ -18,9 +19,17 @@ export class AuthService {
     }
 
     async login(user: any) {
-        const payload = { username: user.username, userId: user.userId };
-        return {
-            access_token: this.jwtService.sign(payload),
+        const validatedUser = await this.validateUser(user.email, user.password);
+        if (!validatedUser) {
+            throw new Error('Invalid credentials');
         }
-    }
+        const payload = { email: user.email, sub: validatedUser.username };
+        return jwt.sign(payload,
+            process.env.JWT_SECRET,
+            {
+                expiresIn: '1h',
+            }
+        );
+    };
 }
+
