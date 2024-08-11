@@ -23,13 +23,16 @@ export class AuthService {
         if (!validatedUser) {
             throw new Error('Invalid credentials');
         }
-        const payload = { email: user.email, sub: validatedUser.username };
-        return jwt.sign(payload,
-            process.env.JWT_SECRET,
-            {
-                expiresIn: '1h',
+
+        const payload = { email: user.email, sub: user.username };
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        return {
+            access_token: token,
+            user: {
+                email: user.email,
             }
-        );
-    };
+        };
+    }
 }
 

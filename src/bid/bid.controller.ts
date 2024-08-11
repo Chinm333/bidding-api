@@ -31,12 +31,13 @@ export class BidController {
         return this.bidService.updateBidAmount(bidId, participantId, bidItemId, amount);
     }
 
-    @Post(':bidId/participants')
+    @Post(':bidId/participants/:participantId')
     async addParticipant(
+        @Param('participantId') participantId: string,
         @Param('bidId') bidId: string,
         @Body('bidAmounts') bidAmounts: { bidItemId: string, amount: number }[]
     ): Promise<Bid> {
-        return this.bidService.addParticipant(bidId,  bidAmounts);
+        return this.bidService.addParticipant(participantId, bidId,  bidAmounts);
     }
     @Post(':bidId/item')
     async addBidItem(@Param('bidId') bidId: string, @Body() bidItem: any): Promise<any> {
@@ -55,5 +56,9 @@ export class BidController {
     @Get(':bidId/summary')
     async getBidSummary(@Param('bidId') bidId: string): Promise<any> {
         return this.bidService.getBidSummary(bidId);
+    }
+    @Post(':bidId/invitation')
+    async sendInvitation(@Body() body: any): Promise<any> {
+        return this.bidService.sendInvitation(body);
     }
 }

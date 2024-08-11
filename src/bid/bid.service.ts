@@ -4,9 +4,21 @@ import { Model } from 'mongoose';
 import { Bid } from './schema/bid.schema';
 import { CommonService } from 'src/common/common.service';
 import { BidItem } from './schema/bid-item.schema';
+import * as nodemailer from 'nodemailer';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 @Injectable()
 export class BidService {
+
+    private transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL,
+            pass: process.env.PASSWORD,
+        },
+    });
 
     constructor(
         @InjectModel('Bid') private readonly bidModel: Model<Bid>,
@@ -20,12 +32,6 @@ export class BidService {
             return {
                 ...item,
                 bidItemId: this.commonService.generateId(4),
-            };
-        });
-        bid.participants = bid.participants.map((item: any) => {
-            return {
-                ...item,
-                participantId: this.commonService.generateId(4),
             };
         });
         return await this.bidModel.create(bid);
@@ -69,26 +75,64 @@ export class BidService {
             }
         );
     }
-    async addParticipant(bidId: string, bidAmounts: { bidItemId: string, amount: number }[]): Promise<Bid> {
-        return await this.bidModel.findOneAndUpdate(
-            { bidId },
-            {
-                $addToSet: {
-                    participants: {
-                        participantId: this.commonService.generateId(4),
-                        bidAmounts: bidAmounts.map((item: any) => {
-                            return {
-                                ...item,
-                                bidItemId: this.commonService.generateId(4),
-                            };
-                        }),
-                        status: 'pending'
-                    }
+
+    async addParticipant(
+        participantId: string,
+        bidId: string,
+        bidAmounts: { bidItemId: string, amount: number }[]
+    ): Promise<Bid> {
+        const bid = await this.bidModel.findOne({ bidId });
+
+        if (!bid) {
+            throw new Error('Bid not found');
+        }
+
+        for (const bidAmount of bidAmounts) {
+            const { bidItemId, amount } = bidAmount;
+
+            const bidItem = bid.items.find(item => item.bidItemId === bidItemId);
+
+            if (bidItem && bidItem.currentBid < amount) {
+                await this.bidModel.updateOne(
+                    { bidId, 'items.bidItemId': bidItemId },
+                    { $set: { 'items.$.currentBid': amount } }
+                );
+            }
+        }
+
+        const existingParticipant = bid.participants.find(p => p.participantId === participantId);
+
+        if (existingParticipant) {
+            return await this.bidModel.findOneAndUpdate(
+                { bidId, 'participants.participantId': participantId },
+                {
+                    $set: {
+                        'participants.$.bidAmounts': bidAmounts,
+                    },
+                },
+                {
+                    new: true,
                 }
-            },
-            { new: true }
-        );
+            );
+        } else {
+            return await this.bidModel.findOneAndUpdate(
+                { bidId },
+                {
+                    $push: {
+                        participants: {
+                            participantId,
+                            bidAmounts,
+                            status: 'pending',
+                        },
+                    },
+                },
+                {
+                    new: true,
+                }
+            );
+        }
     }
+
     async getParticipant(bidId: string, participantId: string): Promise<Bid | null> {
         return await this.bidModel.findOne(
             { bidId, 'participants.participantId': participantId },
@@ -139,5 +183,22 @@ export class BidService {
         };
 
         return summary;
+    }
+    async sendInvitation(body: any): Promise<any> {
+        const emails = Array.isArray(body.emails) ? body.emails : [body.emails];
+        try {
+            await Promise.all(emails.map(email =>
+                this.transporter.sendMail({
+                    to: email,
+                    from: process.env.EMAIL,
+                    subject: 'Invitation to Participate in Bid',
+                    text: 'You are invited to participate in a bid. Please check the details on our website.',
+                })
+            ));
+            return { message: 'Invitations sent successfully!' };
+        } catch (error) {
+            console.error('Error sending invitations:', error);
+            throw new Error('Failed to send invitations.');
+        }
     }
 }

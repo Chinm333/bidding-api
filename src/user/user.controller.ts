@@ -9,7 +9,7 @@ export class UserController {
         private readonly userService: UserService,
     ) { }
     @Post('register')
-    async register(@Body() user: User): Promise<User> {
+    async register(@Body() user: User): Promise<any> {
         return await this.userService.createUser(user);
     }
 

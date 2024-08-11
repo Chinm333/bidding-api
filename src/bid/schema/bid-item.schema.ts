@@ -10,7 +10,7 @@ export const BidItemSchema = new Schema({
         type: String,
         required: true,
     },
-    price: {
+    basePrice: {
         type: Number,
         required: true,
     },
@@ -26,7 +26,7 @@ export const BidItemSchema = new Schema({
 export interface BidItem extends Document {
     bidItemId: string;
     description: string;
-    price: number;
+    basePrice: number;
     currentBid: number;
     bidder: string;
 }
