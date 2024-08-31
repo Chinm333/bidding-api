@@ -37,7 +37,7 @@ export class BidController {
         @Param('bidId') bidId: string,
         @Body('bidAmounts') bidAmounts: { bidItemId: string, amount: number }[]
     ): Promise<Bid> {
-        return this.bidService.addParticipant(participantId, bidId,  bidAmounts);
+        return this.bidService.addParticipant(participantId, bidId, bidAmounts);
     }
     @Post(':bidId/item')
     async addBidItem(@Param('bidId') bidId: string, @Body() bidItem: any): Promise<any> {
@@ -46,6 +46,14 @@ export class BidController {
     @Put(':bidId/items/:itemId')
     async updateBidItem(@Param('bidId') bidId: string, @Param('itemId') itemId: string, @Body() bidItem: any): Promise<BidItem> {
         return await this.bidService.updateBidItem(bidId, itemId, bidItem);
+    }
+
+    @Put(':bidId')
+    async updateBidEndTime(
+        @Param('bidId') bidId: any,
+        @Body('endTime') endTime: Date
+    ): Promise<Bid | null> {
+        return await this.bidService.updateBidEndTime(bidId, endTime);
     }
 
     @Get(':bidId/leaderboard')

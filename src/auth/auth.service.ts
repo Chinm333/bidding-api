@@ -13,7 +13,7 @@ export class AuthService {
         const user = await this.userService.getUser(email);
         if (user && user.password === pass) {
             const { password, ...result } = user;
-            return result;
+            return user;
         }
         return null;
     }
@@ -29,9 +29,7 @@ export class AuthService {
 
         return {
             access_token: token,
-            user: {
-                email: user.email,
-            }
+            user: validatedUser
         };
     }
 }

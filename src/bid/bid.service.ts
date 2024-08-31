@@ -201,4 +201,13 @@ export class BidService {
             throw new Error('Failed to send invitations.');
         }
     }
+
+    async updateBidEndTime(bidId: string, endTime: Date): Promise<Bid | null> {
+        const updatedBid = await this.bidModel.findOneAndUpdate(
+            { bidId: bidId },
+            { endTime },
+            { new: true }
+        );
+        return updatedBid;
+    }
 }
